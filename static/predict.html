@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Low Light Enhancement</title>
+    <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Arimo' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Hind:300' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="prediction">  
+    <h1>Low Light Enhancement</h1>
+    <h3>Upload an image that you want to enhance</h3>
+
+    <!-- <input type="file" id="file" accept="image/*"/> -->
+    <input type="file" id="file" accept="image/*"/>
+    <label for="file" class="btn-2">upload</label>
+
+    <!-- <img id="selected-image" src="" /> -->
+    <button type="predict-btn" id="predict-button">transform</button>
+    </div>
+    <img id="selectedImage" src="" >
+    <p>
+      <button type="save" id="saveFile" class="saveF">Save a file</button>
+    </p>
+    
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+
+    
+      <script>
+
+      const saveFile = document.querySelector('.saveF')
+      saveFile.classList.add('hidden')
+      let base64Image;
+      $("#file").change(function(){
+        let reader = new FileReader();
+        reader.onload = function(e){
+          let dataURL = reader.result;
+          $('#selectedImage').src = ""
+          saveFile.classList.add('hidden')
+          $('#selectedImage').attr("src", dataURL);
+          base64Image = dataURL.replace("data:image/png;base64,","");
+          console.log(base64Image)
+        }
+        reader.readAsDataURL($("#file")[0].files[0]);
+      });
+
+		$("#predict-button").click(function(event){
+
+
+    //Get reference of File.
+    var fileUpload = document.getElementById("file");
+ 
+    //Check whether the file is valid Image.
+    var regex = new RegExp("([a-zA-Z0-9\s_\\.\-:])+(.jpg|.png|.gif)$");
+    if (regex.test(fileUpload.value.toLowerCase())) {
+ 
+        //Check whether HTML5 is supported.
+        if (typeof (fileUpload.files) != "undefined") {
+            //Initiate the FileReader object.
+            var reader = new FileReader();
+            //Read the contents of Image File.
+            reader.readAsDataURL(fileUpload.files[0]);
+            reader.onload = function (e) {
+                //Initiate the JavaScript Image object.
+                var image = new Image();
+ 
+                //Set the Base64 string return from FileReader as source.
+                image.src = e.target.result;
+                       
+                //Validate the File Height and Width.
+                image.onload = function () {
+                    var height = this.height;
+                    var width = this.width;
+                    if (height < 400 || height > 2500 || width < 600 || width > 2500) {
+ 
+                        alert("Wrong Height and Width");
+                        return
+                    }
+                          let message = {
+                          image: base64Image
+                        }
+                        $.post("http://127.0.0.1:5000/predict", JSON.stringify(message), function(response){
+                          $('#selectedImage').attr("src", "data:image/png;base64," + response);
+                          saveFile.classList.remove('hidden')
+                        })
+                };
+ 
+            }
+        } else {
+            alert("This browser does not support HTML5.");
+            return
+        }
+    } else {
+        alert("Please select a valid Image file.");
+        return
+    }
+
+
+
+
+		})
+
+
+    saveFile.onclick = function() {
+      var a = document.createElement('a');
+      a.href = selectedImage.src;
+      a.download = "output.png"
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+
+    </script>
+
+  </body>
+</html>
+
+
+
+
+
+
+
+<!-- const saveFile = document.querySelector('.saveF')
+      saveFile.classList.add('hidden')
+      let base64Image;
+      $("#file").change(function(){
+        let reader = new FileReader();
+        reader.onload = function(e){
+          let dataURL = reader.result;
+          $('#selectedImage').src = ""
+          saveFile.classList.add('hidden')
+          $('#selectedImage').attr("src", dataURL);
+          base64Image = dataURL.replace("data:image/png;base64,","");
+          console.log(base64Image)
+        }
+        reader.readAsDataURL($("#file")[0].files[0]);
+      }); -->
